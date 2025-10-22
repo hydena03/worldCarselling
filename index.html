@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세계 자동차 판매량 순위 대시보드</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 & 언어 선택 -->
+        <div class="top-bar">
+            <h1 id="mainTitle">🚗 세계 자동차 판매량 순위</h1>
+            <div class="language-selector">
+                <button class="lang-btn active" data-lang="ko">🇰🇷 한국어</button>
+                <button class="lang-btn" data-lang="en">🇺🇸 English</button>
+                <button class="lang-btn" data-lang="ja">🇯🇵 日本語</button>
+                <button class="lang-btn" data-lang="zh">🇨🇳 中文</button>
+            </div>
+        </div>
+
+        <!-- 연도 및 구동 방식 선택 -->
+        <section class="year-powertrain-selection">
+            <div class="selection-group">
+                <h2>📅 연도 선택</h2>
+                <div class="year-buttons">
+                    <button class="year-btn" data-year="2020">2020</button>
+                    <button class="year-btn" data-year="2021">2021</button>
+                    <button class="year-btn" data-year="2022">2022</button>
+                    <button class="year-btn" data-year="2023">2023</button>
+                    <button class="year-btn active" data-year="2024">2024</button>
+                    <button class="year-btn" data-year="2025">2025</button>
+                </div>
+            </div>
+            <div class="selection-group">
+                <h2>⚡ 구동 방식</h2>
+                <div class="powertrain-buttons">
+                    <button class="powertrain-btn active" data-type="all">전체</button>
+                    <button class="powertrain-btn" data-type="내연기관">🛢️ 내연기관</button>
+                    <button class="powertrain-btn" data-type="하이브리드">⚡ 하이브리드</button>
+                    <button class="powertrain-btn" data-type="전기차">🔋 전기차</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 기간 선택 -->
+        <section class="period-selection">
+            <div class="period-row">
+                <h2>📊 기간 선택</h2>
+                <div class="period-tabs">
+                    <button class="period-tab active" data-period="yearly">연간 전체</button>
+                    <button class="period-tab" data-period="Q1">1분기</button>
+                    <button class="period-tab" data-period="Q2">2분기</button>
+                    <button class="period-tab" data-period="Q3">3분기</button>
+                    <button class="period-tab" data-period="Q4">4분기</button>
+                </div>
+            </div>
+            <div class="period-row">
+                <h2>📅 월별 선택</h2>
+                <div class="month-tabs">
+                    <button class="month-tab" data-month="01">1월</button>
+                    <button class="month-tab" data-month="02">2월</button>
+                    <button class="month-tab" data-month="03">3월</button>
+                    <button class="month-tab" data-month="04">4월</button>
+                    <button class="month-tab" data-month="05">5월</button>
+                    <button class="month-tab" data-month="06">6월</button>
+                    <button class="month-tab" data-month="07">7월</button>
+                    <button class="month-tab" data-month="08">8월</button>
+                    <button class="month-tab" data-month="09">9월</button>
+                    <button class="month-tab" data-month="10">10월</button>
+                    <button class="month-tab" data-month="11">11월</button>
+                    <button class="month-tab" data-month="12">12월</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 메인 콘텐츠 영역 -->
+        <div class="main-content">
+            <!-- 제조사 순위 -->
+            <section class="company-ranking">
+                <div class="section-header">
+                    <h2>🏆 제조사 판매량 순위</h2>
+                    <div class="period-info" id="periodInfo">2024년 연간</div>
+                </div>
+                <div class="ranking-header">
+                    <div class="header-rank">순위</div>
+                    <div class="header-brand">브랜드</div>
+                    <div class="header-sales">판매대수</div>
+                    <div class="header-change">전년대비</div>
+                    <div class="header-ev">전기차 비율</div>
+                </div>
+                <div class="ranking-list" id="companyRankingList">
+                    <!-- 동적으로 생성됩니다 -->
+                </div>
+            </section>
+
+            <!-- 차종별 상세 정보 -->
+            <section class="model-details">
+                <div class="section-header">
+                    <h2>🚙 차종별 상세 순위</h2>
+                    <div class="company-info" id="selectedCompanyInfo">제조사를 선택하세요</div>
+                </div>
+                <div class="model-header" id="modelHeader" style="display: none;">
+                    <div class="header-model-rank">순위</div>
+                    <div class="header-model-name">모델명</div>
+                    <div class="header-model-type">차종</div>
+                    <div class="header-model-change">전년대비</div>
+                    <div class="header-model-sales">판매대수</div>
+                </div>
+                <div class="model-list" id="modelList">
+                    <div class="empty-state">
+                        <p>👈 왼쪽에서 제조사를 클릭하여 차종별 판매량을 확인하세요</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 차트 영역 -->
+        <section class="chart-section">
+            <div class="chart-container">
+                <h2>📈 제조사별 판매량 차트</h2>
+                <canvas id="companyChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>📊 선택한 제조사의 차종별 비율</h2>
+                <canvas id="modelChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 연도별 판매량 추이 차트 -->
+        <section class="chart-section">
+            <div class="chart-container chart-full-width">
+                <h2>📊 연도별 브랜드 판매량 추이</h2>
+                <canvas id="rankingTrendChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 요약 통계 -->
+        <section class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-icon">🌍</div>
+                <div class="stat-content">
+                    <h3>총 판매량</h3>
+                    <p class="stat-value" id="totalSales">-</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🥇</div>
+                <div class="stat-content">
+                    <h3>1위 제조사</h3>
+                    <p class="stat-value" id="topCompany">-</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <h3>전기차 비율</h3>
+                    <p class="stat-value" id="evRatio">-</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <h3>제조사 수</h3>
+                    <p class="stat-value" id="companyCount">-</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
