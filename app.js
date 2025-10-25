@@ -4,30 +4,32 @@ let selectedPeriods = ['yearly']; // 배열로 변경 (다중 선택 가능)
 let selectedMonths = []; // 배열로 변경 (다중 선택 가능)
 let selectedPowertrainTypes = ['all']; // 배열로 변경 (다중 선택 가능)
 let selectedCompany = null;
+let treemapSelectedCompany = null; // Treemap 드릴다운용 선택된 회사
 let charts = {};
 let currentLang = 'ko'; // 현재 언어
+let carImagesCache = {}; // 차량 이미지 캐시
 
 // 다국어 지원
 const translations = {
     ko: {
-        mainTitle: '🚗 세계 자동차 판매량 순위',
+        mainTitle: '세계 자동차 판매량 순위',
         subtitle: '연도별 · 분기별 · 월별 제조사 및 차종 순위',
-        yearSelection: '📅 연도 선택',
-        powertrainSelection: '⚡ 구동 방식',
-        periodSelection: '📊 기간 선택',
-        monthSelection: '📅 월별 선택',
+        yearSelection: '연도 선택',
+        powertrainSelection: '구동 방식',
+        periodSelection: '기간 선택',
+        monthSelection: '월별 선택',
         all: '전체',
-        ice: '🛢️ 내연기관',
-        hybrid: '⚡ 하이브리드',
-        ev: '🔋 전기차',
+        ice: '내연기관',
+        hybrid: '하이브리드',
+        ev: '전기차',
         yearly: '연간 전체',
         Q1: '1분기 (Q1)',
         Q2: '2분기 (Q2)',
         Q3: '3분기 (Q3)',
         Q4: '4분기 (Q4)',
         months: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-        companyRanking: '🏆 제조사 판매량 순위',
-        modelDetails: '🚙 차종별 상세 순위',
+        companyRanking: '제조사 판매량 순위',
+        modelDetails: '차종별 상세 순위',
         headerRank: '순위',
         headerBrand: '브랜드',
         headerSales: '판매대수',
@@ -39,7 +41,7 @@ const translations = {
         headerModelChange: '전년대비',
         headerModelSales: '판매대수',
         selectCompany: '제조사를 선택하세요',
-        emptyState: '👈 왼쪽에서 제조사를 클릭하여 차종별 판매량을 확인하세요',
+        emptyState: '왼쪽에서 제조사를 클릭하여 차종별 판매량을 확인하세요',
         allModels: '전체 차종 순위',
         totalSalesLabel: '총 판매량',
         topCompanyLabel: '1위 제조사',
@@ -57,24 +59,24 @@ const translations = {
         sedanHybrid: '세단 하이브리드'
     },
     en: {
-        mainTitle: '🚗 Global Automobile Sales Ranking',
+        mainTitle: 'Global Automobile Sales Ranking',
         subtitle: 'By Year · Quarter · Month - Manufacturer & Model Rankings',
-        yearSelection: '📅 Year Selection',
-        powertrainSelection: '⚡ Powertrain',
-        periodSelection: '📊 Period Selection',
-        monthSelection: '📅 Month Selection',
+        yearSelection: 'Year Selection',
+        powertrainSelection: 'Powertrain',
+        periodSelection: 'Period Selection',
+        monthSelection: 'Month Selection',
         all: 'All',
-        ice: '🛢️ ICE',
-        hybrid: '⚡ Hybrid',
-        ev: '🔋 EV',
+        ice: 'ICE',
+        hybrid: 'Hybrid',
+        ev: 'EV',
         yearly: 'Annual',
         Q1: 'Q1',
         Q2: 'Q2',
         Q3: 'Q3',
         Q4: 'Q4',
         months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        companyRanking: '🏆 Manufacturer Sales Ranking',
-        modelDetails: '🚙 Model Details Ranking',
+        companyRanking: 'Manufacturer Sales Ranking',
+        modelDetails: 'Model Details Ranking',
         headerRank: 'Rank',
         headerBrand: 'Brand',
         headerSales: 'Sales',
@@ -86,7 +88,7 @@ const translations = {
         headerModelChange: 'YoY',
         headerModelSales: 'Sales',
         selectCompany: 'Select a manufacturer',
-        emptyState: '👈 Click a manufacturer to view model sales',
+        emptyState: 'Click a manufacturer to view model sales',
         allModels: 'All Models Ranking',
         totalSalesLabel: 'Total Sales',
         topCompanyLabel: 'Top Company',
@@ -104,24 +106,24 @@ const translations = {
         sedanHybrid: 'Sedan Hybrid'
     },
     ja: {
-        mainTitle: '🚗 世界自動車販売台数ランキング',
+        mainTitle: '世界自動車販売台数ランキング',
         subtitle: '年度別・四半期別・月別 メーカー＆車種ランキング',
-        yearSelection: '📅 年度選択',
-        powertrainSelection: '⚡ パワートレイン',
-        periodSelection: '📊 期間選択',
-        monthSelection: '📅 月別選択',
+        yearSelection: '年度選択',
+        powertrainSelection: 'パワートレイン',
+        periodSelection: '期間選択',
+        monthSelection: '月別選択',
         all: '全体',
-        ice: '🛢️ 内燃機関',
-        hybrid: '⚡ ハイブリッド',
-        ev: '🔋 電気自動車',
+        ice: '内燃機関',
+        hybrid: 'ハイブリッド',
+        ev: '電気自動車',
         yearly: '年間',
         Q1: '第1四半期',
         Q2: '第2四半期',
         Q3: '第3四半期',
         Q4: '第4四半期',
         months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-        companyRanking: '🏆 メーカー販売台数ランキング',
-        modelDetails: '🚙 車種別詳細ランキング',
+        companyRanking: 'メーカー販売台数ランキング',
+        modelDetails: '車種別詳細ランキング',
         headerRank: '順位',
         headerBrand: 'ブランド',
         headerSales: '販売台数',
@@ -133,7 +135,7 @@ const translations = {
         headerModelChange: '前年比',
         headerModelSales: '販売台数',
         selectCompany: 'メーカーを選択してください',
-        emptyState: '👈 左側のメーカーをクリックして車種別販売台数を確認',
+        emptyState: '左側のメーカーをクリックして車種別販売台数を確認',
         allModels: '全車種ランキング',
         totalSalesLabel: '総販売台数',
         topCompanyLabel: '1位メーカー',
@@ -151,24 +153,24 @@ const translations = {
         sedanHybrid: 'セダン ハイブリッド'
     },
     zh: {
-        mainTitle: '🚗 全球汽车销量排行榜',
+        mainTitle: '全球汽车销量排行榜',
         subtitle: '年度 · 季度 · 月度 制造商及车型排名',
-        yearSelection: '📅 年度选择',
-        powertrainSelection: '⚡ 动力系统',
-        periodSelection: '📊 期间选择',
-        monthSelection: '📅 月份选择',
+        yearSelection: '年度选择',
+        powertrainSelection: '动力系统',
+        periodSelection: '期间选择',
+        monthSelection: '月份选择',
         all: '全部',
-        ice: '🛢️ 燃油车',
-        hybrid: '⚡ 混合动力',
-        ev: '🔋 电动车',
+        ice: '燃油车',
+        hybrid: '混合动力',
+        ev: '电动车',
         yearly: '全年',
         Q1: '第一季度',
         Q2: '第二季度',
         Q3: '第三季度',
         Q4: '第四季度',
         months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-        companyRanking: '🏆 制造商销量排名',
-        modelDetails: '🚙 车型详细排名',
+        companyRanking: '制造商销量排名',
+        modelDetails: '车型详细排名',
         headerRank: '排名',
         headerBrand: '品牌',
         headerSales: '销量',
@@ -180,7 +182,7 @@ const translations = {
         headerModelChange: '同比',
         headerModelSales: '销量',
         selectCompany: '请选择制造商',
-        emptyState: '👈 点击左侧制造商查看车型销量',
+        emptyState: '点击左侧制造商查看车型销量',
         allModels: '全部车型排名',
         totalSalesLabel: '总销量',
         topCompanyLabel: '第一名',
@@ -210,6 +212,31 @@ function getPowertrainType(vehicleType) {
     }
 }
 
+// 최신 업데이트 날짜 표시
+function updateLastUpdateDate() {
+    // 데이터에서 가장 최근 날짜 찾기
+    const allDates = salesData.map(item => item.date);
+    const latestDate = allDates.sort().reverse()[0];
+    const [year, month] = latestDate.split('-');
+    
+    const t = translations[currentLang];
+    const updateElement = document.getElementById('updateInfo');
+    
+    let updateText = '';
+    if (currentLang === 'ko') {
+        updateText = `${year}년 ${parseInt(month)}월 현황까지 업데이트`;
+    } else if (currentLang === 'en') {
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        updateText = `Updated through ${monthNames[parseInt(month) - 1]} ${year}`;
+    } else if (currentLang === 'ja') {
+        updateText = `${year}年${parseInt(month)}月現況まで更新`;
+    } else if (currentLang === 'zh') {
+        updateText = `更新至${year}年${parseInt(month)}月`;
+    }
+    
+    updateElement.innerHTML = `<span class="update-badge">${updateText}</span>`;
+}
+
 // 언어 전환 함수
 function switchLanguage(lang) {
     currentLang = lang;
@@ -217,6 +244,9 @@ function switchLanguage(lang) {
     
     // 헤더 업데이트
     document.getElementById('mainTitle').textContent = t.mainTitle;
+    
+    // 업데이트 날짜 업데이트
+    updateLastUpdateDate();
     
     // 섹션 제목 업데이트
     document.querySelectorAll('.selection-group h2')[0].innerHTML = t.yearSelection;
@@ -260,22 +290,22 @@ function switchLanguage(lang) {
     
     // 차트 제목 업데이트
     const chartTitle1 = {
-        ko: '📈 제조사별 판매량 차트',
-        en: '📈 Sales by Manufacturer',
-        ja: '📈 メーカー別販売台数チャート',
-        zh: '📈 制造商销量图表'
+        ko: '제조사별 판매량 차트',
+        en: 'Sales by Manufacturer',
+        ja: 'メーカー別販売台数チャート',
+        zh: '制造商销量图表'
     };
     const chartTitle2 = {
-        ko: '📊 선택한 제조사의 차종별 비율',
-        en: '📊 Model Distribution by Selected Manufacturer',
-        ja: '📊 選択したメーカーの車種別比率',
-        zh: '📊 所选制造商的车型分布'
+        ko: '선택한 제조사의 차종별 비율',
+        en: 'Model Distribution by Selected Manufacturer',
+        ja: '選択したメーカーの車種別比率',
+        zh: '所选制造商的车型分布'
     };
     const chartTitle3 = {
-        ko: '📊 연도별 브랜드 판매량 추이',
-        en: '📊 Brand Sales Trend by Year',
-        ja: '📊 年度別ブランド販売台数推移',
-        zh: '📊 品牌销量年度趋势'
+        ko: '연도별 브랜드 판매량 추이',
+        en: 'Brand Sales Trend by Year',
+        ja: '年度別ブランド販売台数推移',
+        zh: '品牌销量年度趋势'
     };
     document.querySelectorAll('.chart-container h2')[0].innerHTML = chartTitle1[lang];
     document.querySelectorAll('.chart-container h2')[1].innerHTML = chartTitle2[lang];
@@ -291,9 +321,47 @@ function switchLanguage(lang) {
     updateDisplay();
 }
 
+// 차량 이미지 미리 로드
+function preloadCarImages() {
+    const bestSellingCarImages = {
+        'Toyota': 'https://images.unsplash.com/photo-1638618164682-12b986ec2a75?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=774?w=800&h=600&fit=crop',
+        'Volkswagen': 'https://images.unsplash.com/photo-1655286161233-7aa3a3e39e8a?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=774?w=800&h=600&fit=crop',
+        'Hyundai-Kia': 'https://images.unsplash.com/photo-1716384277908-0024e397c30c?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=872?w=800&h=600&fit=crop',
+        'GM': 'https://images.unsplash.com/photo-1645830122484-e0aa9955456a?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=830?w=800&h=600&fit=crop',
+        'Stellantis': 'https://images.unsplash.com/photo-1526034186163-b510f00786f2?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=2574?w=800&h=600&fit=crop',
+        'Ford': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&h=600&fit=crop',
+        'Honda': 'https://images.unsplash.com/photo-1594070319944-7c0cbebb6f58?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Q2l2aWN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&q=60&w=700?w=800&h=600&fit=crop',
+        'Nissan': 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&h=600&fit=crop',
+        'BYD': 'https://images.unsplash.com/photo-1728469876516-17a32611eb24?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YnlkfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=700?w=800&h=600&fit=crop',
+        'Tesla': 'https://images.unsplash.com/photo-1617704548623-340376564e68?w=800&h=600&fit=crop',
+        'Mercedes-Benz': 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop',
+        'BMW': 'https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&h=600&fit=crop'
+    };
+    
+    Object.entries(bestSellingCarImages).forEach(([company, url]) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            console.log(`✓ 이미지 로드 성공: ${company}`);
+            carImagesCache[company] = img;
+            // 차트 다시 그리기
+            if (charts.company) {
+                charts.company.update('none');
+            }
+        };
+        img.onerror = function(e) {
+            console.error(`✗ 이미지 로드 실패: ${company}`, url);
+        };
+        img.src = url;
+    });
+}
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
+    
+    // 차량 이미지 미리 로드
+    preloadCarImages();
     
     // 언어 선택 버튼 이벤트
     document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -303,6 +371,19 @@ document.addEventListener('DOMContentLoaded', function() {
             switchLanguage(this.dataset.lang);
         });
     });
+    
+    // Treemap 제목 클릭 시 전체 보기로 돌아가기
+    document.getElementById('companyChartTitle').addEventListener('click', function() {
+        if (treemapSelectedCompany) {
+            treemapSelectedCompany = null;
+            const data = getFilteredData();
+            const companyData = aggregateByCompany(data);
+            updateCompanyChart(companyData);
+        }
+    });
+    
+    // 초기 업데이트 날짜 표시
+    updateLastUpdateDate();
     
     updateDisplay();
 });
@@ -603,6 +684,19 @@ function displayCompanyRanking(companyData) {
         const evSales = companyDataFiltered.filter(d => d.vehicleType === '전기차').reduce((sum, d) => sum + d.sales, 0);
         const evRatio = ((evSales / item.sales) * 100).toFixed(1);
         
+        // 전년도 전기차 비율 계산
+        let previousEvRatio = null;
+        let evRatioDiff = null;
+        if (previousItem && previousItem.sales > 0) {
+            const previousCompanyFiltered = previousData.filter(d => d.company === item.company);
+            const previousEvSales = previousCompanyFiltered.filter(d => d.vehicleType === '전기차').reduce((sum, d) => sum + d.sales, 0);
+            previousEvRatio = parseFloat(((previousEvSales / previousItem.sales) * 100).toFixed(1));
+            const currentEvRatio = parseFloat(evRatio);
+            evRatioDiff = (currentEvRatio - previousEvRatio).toFixed(1);
+            
+            console.log(`${item.company}: 현재 EV비율=${currentEvRatio}%, 전년도 EV비율=${previousEvRatio}%, 차이=${evRatioDiff}%p`);
+        }
+        
         const t = translations[currentLang];
         
         // 증감 표시
@@ -611,7 +705,7 @@ function displayCompanyRanking(companyData) {
             const isPositive = salesDiff >= 0;
             const arrow = isPositive ? '▲' : '▼';
             const colorClass = isPositive ? 'increase' : 'decrease';
-            changeHtml = `<div class="sales-change ${colorClass}">${arrow} ${Math.abs(salesDiff).toLocaleString()} ${t.units} (${isPositive ? '+' : ''}${salesDiffPercent}%)</div>`;
+            changeHtml = `<div class="sales-change ${colorClass}">${arrow} ${Math.abs(salesDiff).toLocaleString()} (${isPositive ? '+' : ''}${salesDiffPercent}%)</div>`;
         } else {
             changeHtml = `<div class="sales-change">-</div>`;
         }
@@ -626,14 +720,97 @@ function displayCompanyRanking(companyData) {
         } else if (previousRank) {
             rankChangeHtml = `<span class="rank-change rank-same">-</span>`;
         }
+        // 브랜드 로고 이미지 (더 안정적인 URL 사용)
+        const brandLogos = {
+            'Toyota': 'https://i.namu.wiki/i/t9ZSUaVdfjrVQndvmy3BTeys6u-QEGJXS-vYtE1PEBMtirhcZ_Z1ewWrsKOIbv_xFyTzJrMW0wujyOD7Vu6wPg.webp',
+            'Volkswagen': 'https://logo.clearbit.com/vw.com',
+            'Hyundai-Kia': 'https://img.getcha.io/file/board/20200522/1590115011NYHNP.png',
+            'GM': 'https://logo.clearbit.com/gm.com',
+            'Stellantis': 'https://logo.clearbit.com/stellantis.com',
+            'Ford': 'https://logo.clearbit.com/ford.com',
+            'Honda': 'https://i.namu.wiki/i/NAObOBkqZA3buq-Z6i6jjgtDnjqHlPGZQIwX6P0-vlI_brAHh02yMuk0JZLY1Sbzyo7fcUrXdFGHnO5znSli3A.webp',
+            'Nissan': 'https://i.namu.wiki/i/8t0fwkYNWK37g3p_rHI625_XHi_9IoqYqYBAFM0b449dx3VrNgWMVci1NJpjpO57O6qve2lYq63MQFH7mQZEBg.svg',
+            'BYD': 'https://logo.clearbit.com/byd.com',
+            'Tesla': 'https://logo.clearbit.com/tesla.com',
+            'Mercedes-Benz': 'https://i.namu.wiki/i/185_VJzeERyosme3CoH_vCvIvjP9LiuSkVhYoXAqfXL9tGtFevthz4EAagffjHoVlgiRYpOzNgAKUzP9lBTE2g.svg',
+            'BMW': 'https://e7.pngegg.com/pngimages/995/480/png-clipart-bmw-car-logo-bmw-logo-trademark-logo.png'
+        };
+        const brandLogo = brandLogos[item.company] || '';
+        
+        // 첫 글자 백업
+        const brandLetter = item.company.charAt(0).toUpperCase();
+        const brandColors = {
+            'Toyota': '#EB0A1E',
+            'Volkswagen': '#001E50',
+            'Hyundai-Kia': '#002C5F',
+            'GM': '#0057A3',
+            'Stellantis': '#4E2E8E',
+            'Ford': '#003478',
+            'Honda': '#CC0000',
+            'Nissan': '#C3002F',
+            'BYD': '#FF0000',
+            'Tesla': '#CC0000',
+            'Mercedes-Benz': '#00ADEF',
+            'BMW': '#1C69D4'
+        };
+        const brandColor = brandColors[item.company] || '#007AFF';
+        
+        // 현대-기아는 두 로고 표시
+        let logoHtml = '';
+        if (item.company === 'Hyundai-Kia') {
+            logoHtml = `
+                <img src="https://e7.pngegg.com/pngimages/458/5/png-clipart-hyundai-motor-company-car-kia-motors-logo-car-blue-text.png" 
+                     alt="Hyundai" 
+                     class="brand-logo brand-logo-dual"
+                     onerror="this.style.display='none';">
+                <img src="https://i.namu.wiki/i/ksgL6n6mTOwe2sAezd7N7zDW4HrbEPQSkkO1ok22j1iLqv3ioQl0UMnP2etdtSpT8lKCZlXlAnzJYjVMZstd-A.svg" 
+                     alt="Kia" 
+                     class="brand-logo brand-logo-dual"
+                     onerror="this.style.display='none';">
+            `;
+        } else if (brandLogo) {
+            logoHtml = `
+                <img src="${brandLogo}" 
+                     alt="${item.company}" 
+                     class="brand-logo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                <span class="brand-logo-fallback" style="display:none; background-color: ${brandColor}">${brandLetter}</span>
+            `;
+        } else {
+            logoHtml = `<span class="brand-logo-fallback" style="background-color: ${brandColor}">${brandLetter}</span>`;
+        }
+        
+        // 전기차 비율 배지 HTML
+        let evBadgeHtml = '';
+        if (evRatio > 0) {
+            let evChangeText = '';
+            if (evRatioDiff !== null) {
+                const diffValue = parseFloat(evRatioDiff);
+                console.log(`${item.company} - evRatioDiff: ${evRatioDiff}, diffValue: ${diffValue}`);
+                
+                if (Math.abs(diffValue) >= 0.1) { // 0.1%p 이상 차이날 때만 표시
+                    const isPositive = diffValue > 0;
+                    const arrow = isPositive ? '▲' : '▼';
+                    const colorClass = isPositive ? 'increase' : 'decrease';
+                    evChangeText = ` <span class="ev-change ${colorClass}">${arrow}${Math.abs(diffValue).toFixed(1)}%p</span>`;
+                }
+            }
+            evBadgeHtml = `<div class="ranking-badge">⚡ ${evRatio}%${evChangeText}</div>`;
+        } else {
+            evBadgeHtml = '<div class="ranking-badge" style="visibility: hidden;">⚡ 0%</div>';
+        }
+        
         div.innerHTML = `
             <div class="ranking-number rank-${rank}">${rank} ${rankChangeHtml}</div>
             <div class="ranking-content">
-                <div class="company-name">${item.company}</div>
-                <div class="company-sales">${item.sales.toLocaleString()} ${t.units}</div>
+                <div class="company-name">
+                    ${logoHtml}
+                    ${item.company}
+                </div>
+                <div class="company-sales">${item.sales.toLocaleString()}</div>
                 ${changeHtml}
             </div>
-            ${evRatio > 0 ? `<div class="ranking-badge">⚡ ${evRatio}%</div>` : '<div class="ranking-badge" style="visibility: hidden;">⚡ 0%</div>'}
+            ${evBadgeHtml}
         `;
         
         div.addEventListener('click', function() {
@@ -725,8 +902,68 @@ function displayModelDetails(company) {
             }
         }
         
-        // 전체 차종 순위일 때는 제조사명 표시
-        const modelName = company ? item.model : `${item.company} ${item.model}`;
+        // 브랜드 로고 이미지
+        const brandLogos = {
+            'Toyota': 'https://i.namu.wiki/i/t9ZSUaVdfjrVQndvmy3BTeys6u-QEGJXS-vYtE1PEBMtirhcZ_Z1ewWrsKOIbv_xFyTzJrMW0wujyOD7Vu6wPg.webp',
+            'Volkswagen': 'https://logo.clearbit.com/vw.com',
+            'Hyundai-Kia': 'https://img.getcha.io/file/board/20200522/1590115011NYHNP.png',
+            'GM': 'https://logo.clearbit.com/gm.com',
+            'Stellantis': 'https://logo.clearbit.com/stellantis.com',
+            'Ford': 'https://logo.clearbit.com/ford.com',
+            'Honda': 'https://i.namu.wiki/i/NAObOBkqZA3buq-Z6i6jjgtDnjqHlPGZQIwX6P0-vlI_brAHh02yMuk0JZLY1Sbzyo7fcUrXdFGHnO5znSli3A.webp',
+            'Nissan': 'https://i.namu.wiki/i/8t0fwkYNWK37g3p_rHI625_XHi_9IoqYqYBAFM0b449dx3VrNgWMVci1NJpjpO57O6qve2lYq63MQFH7mQZEBg.svg',
+            'BYD': 'https://logo.clearbit.com/byd.com',
+            'Tesla': 'https://logo.clearbit.com/tesla.com',
+            'Mercedes-Benz': 'https://i.namu.wiki/i/185_VJzeERyosme3CoH_vCvIvjP9LiuSkVhYoXAqfXL9tGtFevthz4EAagffjHoVlgiRYpOzNgAKUzP9lBTE2g.svg',
+            'BMW': 'https://e7.pngegg.com/pngimages/995/480/png-clipart-bmw-car-logo-bmw-logo-trademark-logo.png'
+        };
+        const brandLogo = brandLogos[item.company] || '';
+        
+        // 첫 글자 백업
+        const brandLetter = item.company.charAt(0).toUpperCase();
+        const brandColors = {
+            'Toyota': '#EB0A1E',
+            'Volkswagen': '#001E50',
+            'Hyundai-Kia': '#002C5F',
+            'GM': '#0057A3',
+            'Stellantis': '#4E2E8E',
+            'Ford': '#003478',
+            'Honda': '#CC0000',
+            'Nissan': '#C3002F',
+            'BYD': '#FF0000',
+            'Tesla': '#CC0000',
+            'Mercedes-Benz': '#00ADEF',
+            'BMW': '#1C69D4'
+        };
+        const brandColor = brandColors[item.company] || '#007AFF';
+        
+        // 현대-기아는 두 로고 표시
+        let logoHtml = '';
+        if (item.company === 'Hyundai-Kia') {
+            logoHtml = `
+                <img src="https://e7.pngegg.com/pngimages/458/5/png-clipart-hyundai-motor-company-car-kia-motors-logo-car-blue-text.png" 
+                     alt="Hyundai" 
+                     class="model-brand-logo model-brand-logo-dual"
+                     onerror="this.style.display='none';">
+                <img src="https://i.namu.wiki/i/ksgL6n6mTOwe2sAezd7N7zDW4HrbEPQSkkO1ok22j1iLqv3ioQl0UMnP2etdtSpT8lKCZlXlAnzJYjVMZstd-A.svg" 
+                     alt="Kia" 
+                     class="model-brand-logo model-brand-logo-dual"
+                     onerror="this.style.display='none';">
+            `;
+        } else if (brandLogo) {
+            logoHtml = `
+                <img src="${brandLogo}" 
+                     alt="${item.company}" 
+                     class="model-brand-logo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                <span class="model-brand-logo-fallback" style="display:none; background-color: ${brandColor}">${brandLetter}</span>
+            `;
+        } else {
+            logoHtml = `<span class="model-brand-logo-fallback" style="background-color: ${brandColor}">${brandLetter}</span>`;
+        }
+        
+        // 전체 차종 순위일 때는 모델명만 (회사명 제거)
+        const modelName = item.model;
         
         const t = translations[currentLang];
         
@@ -736,18 +973,19 @@ function displayModelDetails(company) {
             const isPositive = salesDiff >= 0;
             const arrow = isPositive ? '▲' : '▼';
             const colorClass = isPositive ? 'increase' : 'decrease';
-            changeHtml = `<div class="model-change ${colorClass}">${arrow} ${Math.abs(salesDiff).toLocaleString()} ${t.units} (${isPositive ? '+' : ''}${salesDiffPercent}%)</div>`;
+            changeHtml = `<div class="model-change ${colorClass}">${arrow} ${Math.abs(salesDiff).toLocaleString()} (${isPositive ? '+' : ''}${salesDiffPercent}%)</div>`;
         } else {
             changeHtml = `<div class="model-change">-</div>`;
         }
         div.innerHTML = `
             <div class="model-rank">${rankDisplay} ${rankChangeHtml}</div>
-            <div class="model-info">
-                <div class="model-name">${modelName}</div>
-                <div class="model-type">${item.vehicleType} ${item.model === "기타" ? "" : powertrainBadge[powertrainType]}</div>
-                ${changeHtml}
+            <div class="model-name">
+                ${logoHtml}
+                ${modelName}
             </div>
-            <div class="model-sales">${item.sales.toLocaleString()} ${t.units}</div>
+            <div class="model-sales">${item.sales.toLocaleString()}</div>
+            ${changeHtml}
+            <div class="model-type">${item.vehicleType} ${item.model === "기타" ? "" : powertrainBadge[powertrainType]}</div>
         `;
         
         container.appendChild(div);
@@ -782,6 +1020,22 @@ function updateRankingTrendChart() {
         rankingsByYear[2024].slice(0, 10).map(item => item.company) : 
         Array.from(allCompanies).slice(0, 10);
     
+    // 브랜드 로고 이미지
+    const brandLogos = {
+        'Toyota': 'https://i.namu.wiki/i/t9ZSUaVdfjrVQndvmy3BTeys6u-QEGJXS-vYtE1PEBMtirhcZ_Z1ewWrsKOIbv_xFyTzJrMW0wujyOD7Vu6wPg.webp',
+        'Volkswagen': 'https://logo.clearbit.com/vw.com',
+        'Hyundai-Kia': 'https://img.getcha.io/file/board/20200522/1590115011NYHNP.png',
+        'GM': 'https://logo.clearbit.com/gm.com',
+        'Stellantis': 'https://logo.clearbit.com/stellantis.com',
+        'Ford': 'https://logo.clearbit.com/ford.com',
+        'Honda': 'https://i.namu.wiki/i/NAObOBkqZA3buq-Z6i6jjgtDnjqHlPGZQIwX6P0-vlI_brAHh02yMuk0JZLY1Sbzyo7fcUrXdFGHnO5znSli3A.webp',
+        'Nissan': 'https://i.namu.wiki/i/8t0fwkYNWK37g3p_rHI625_XHi_9IoqYqYBAFM0b449dx3VrNgWMVci1NJpjpO57O6qve2lYq63MQFH7mQZEBg.svg',
+        'BYD': 'https://logo.clearbit.com/byd.com',
+        'Tesla': 'https://logo.clearbit.com/tesla.com',
+        'Mercedes-Benz': 'https://i.namu.wiki/i/185_VJzeERyosme3CoH_vCvIvjP9LiuSkVhYoXAqfXL9tGtFevthz4EAagffjHoVlgiRYpOzNgAKUzP9lBTE2g.svg',
+        'BMW': 'https://e7.pngegg.com/pngimages/995/480/png-clipart-bmw-car-logo-bmw-logo-trademark-logo.png'
+    };
+    
     // 각 회사별 연도별 판매량 데이터 생성
     const datasets = topCompanies.map((company, idx) => {
         const salesByYear = years.map(year => {
@@ -795,22 +1049,25 @@ function updateRankingTrendChart() {
             '#AF52DE', '#FF2D55', '#5856D6', '#FFCC00', '#FF6482'
         ];
         
-        const pointStyles = [
-            'circle', 'rect', 'triangle', 'rectRot', 'cross', 
-            'star', 'crossRot', 'rectRounded', 'dash', 'line'
-        ];
+        // 브랜드 로고 이미지 객체 생성
+        let pointStyleImage = 'circle';
+        if (brandLogos[company]) {
+            const img = new Image(20, 20);
+            img.src = brandLogos[company];
+            pointStyleImage = img;
+        }
         
         return {
             label: company,
             data: salesByYear,
             borderColor: colors[idx % colors.length],
             backgroundColor: colors[idx % colors.length],
-            borderWidth: 2.5,
+            borderWidth: 3,
             tension: 0,
-            pointRadius: 6,
-            pointHoverRadius: 9,
-            pointStyle: pointStyles[idx % pointStyles.length],
-            pointBorderWidth: 2,
+            pointRadius: 15,
+            pointHoverRadius: 20,
+            pointStyle: pointStyleImage,
+            pointBorderWidth: 3,
             pointBorderColor: '#fff',
             spanGaps: true
         };
@@ -843,27 +1100,14 @@ function updateRankingTrendChart() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             interaction: {
                 mode: 'index',
                 intersect: false,
             },
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: {
-                            size: 11,
-                            weight: 500,
-                            family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
-                        },
-                        color: '#1d1d1f',
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 10,
-                        boxHeight: 10
-                    }
+                    display: false
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -899,11 +1143,12 @@ function updateRankingTrendChart() {
                     },
                     ticks: {
                         font: {
-                            size: 11,
+                            size: 12,
                             family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
                         },
                         color: '#86868b',
-                        padding: 8,
+                        padding: 10,
+                        maxTicksLimit: 12,
                         callback: function(value) {
                             return (value / 1000).toFixed(0) + 'K';
                         }
@@ -929,11 +1174,11 @@ function updateRankingTrendChart() {
                     },
                     ticks: {
                         font: {
-                            size: 11,
+                            size: 12,
                             family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
                         },
                         color: '#86868b',
-                        padding: 8
+                        padding: 10
                     },
                     title: {
                         display: true,
@@ -1026,7 +1271,7 @@ function updateSummaryStats(companyData) {
     
     // 총 판매량
     const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
-    document.getElementById('totalSales').textContent = totalSales.toLocaleString() + ' ' + t.units;
+    document.getElementById('totalSales').textContent = totalSales.toLocaleString();
     
     // 1위 제조사
     if (companyData.length > 0) {
@@ -1046,35 +1291,137 @@ function updateSummaryStats(companyData) {
 // 제조사별 차트 업데이트
 function updateCompanyChart(companyData) {
     const ctx = document.getElementById('companyChart');
-    const top10 = companyData.slice(0, 10);
-    const labels = top10.map(item => item.company);
-    const values = top10.map(item => item.sales);
+    const t = translations[currentLang];
     
     if (charts.company) {
         charts.company.destroy();
     }
     
     const colors = [
-        '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5AC8FA',
-        '#AF52DE', '#FF2D55', '#5856D6', '#FFCC00', '#FF6482'
+        '#4A90E2', '#50C878', '#FF6B9D', '#9B59B6', '#26C6DA',
+        '#FF7043', '#5C6BC0', '#66BB6A', '#FFA726', '#EC407A'
     ];
     
+    // 브랜드 로고
+    const brandLogos = {
+        'Toyota': 'https://i.namu.wiki/i/t9ZSUaVdfjrVQndvmy3BTeys6u-QEGJXS-vYtE1PEBMtirhcZ_Z1ewWrsKOIbv_xFyTzJrMW0wujyOD7Vu6wPg.webp',
+        'Volkswagen': 'https://logo.clearbit.com/vw.com',
+        'Hyundai-Kia': 'https://img.getcha.io/file/board/20200522/1590115011NYHNP.png',
+        'GM': 'https://logo.clearbit.com/gm.com',
+        'Stellantis': 'https://logo.clearbit.com/stellantis.com',
+        'Ford': 'https://logo.clearbit.com/ford.com',
+        'Honda': 'https://i.namu.wiki/i/NAObOBkqZA3buq-Z6i6jjgtDnjqHlPGZQIwX6P0-vlI_brAHh02yMuk0JZLY1Sbzyo7fcUrXdFGHnO5znSli3A.webp',
+        'Nissan': 'https://i.namu.wiki/i/8t0fwkYNWK37g3p_rHI625_XHi_9IoqYqYBAFM0b449dx3VrNgWMVci1NJpjpO57O6qve2lYq63MQFH7mQZEBg.svg',
+        'BYD': 'https://logo.clearbit.com/byd.com',
+        'Tesla': 'https://logo.clearbit.com/tesla.com',
+        'Mercedes-Benz': 'https://i.namu.wiki/i/185_VJzeERyosme3CoH_vCvIvjP9LiuSkVhYoXAqfXL9tGtFevthz4EAagffjHoVlgiRYpOzNgAKUzP9lBTE2g.svg',
+        'BMW': 'https://e7.pngegg.com/pngimages/995/480/png-clipart-bmw-car-logo-bmw-logo-trademark-logo.png'
+    };
+    
+    // 각 제조사별 베스트셀링 차량 이미지
+    const bestSellingCarImages = {
+        'Toyota': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop',  // Toyota RAV4
+        'Volkswagen': 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&h=600&fit=crop',  // VW Tiguan
+        'Hyundai-Kia': 'https://images.unsplash.com/photo-1619405399517-d7fce0f13302?w=800&h=600&fit=crop',  // Hyundai Tucson
+        'GM': 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&h=600&fit=crop',  // Chevrolet Silverado
+        'Stellantis': 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&h=600&fit=crop',  // Ram Pickup
+        'Ford': 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&h=600&fit=crop',  // Ford Pickup
+        'Honda': 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=800&h=600&fit=crop',  // Honda SUV
+        'Nissan': 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&h=600&fit=crop',  // Nissan Rogue
+        'BYD': 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800&h=600&fit=crop',  // Electric Car
+        'Tesla': 'https://images.unsplash.com/photo-1617704548623-340376564e68?w=800&h=600&fit=crop',  // Tesla Model Y
+        'Mercedes-Benz': 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop',  // Mercedes C-Class
+        'BMW': 'https://images.unsplash.com/photo-1617531653332-bd46c24f2068?w=800&h=600&fit=crop'  // BMW 3 Series
+    };
+    
+    // 제조사별 그라데이션 패턴 (각도와 투명도)
+    const gradientPatterns = {
+        'Toyota': { angle: 135, opacity: 0.2 },
+        'Volkswagen': { angle: 45, opacity: 0.25 },
+        'Hyundai-Kia': { angle: 90, opacity: 0.2 },
+        'GM': { angle: 180, opacity: 0.22 },
+        'Stellantis': { angle: 270, opacity: 0.25 },
+        'Ford': { angle: 315, opacity: 0.2 },
+        'Honda': { angle: 0, opacity: 0.23 },
+        'Nissan': { angle: 225, opacity: 0.25 },
+        'BYD': { angle: 120, opacity: 0.2 },
+        'Tesla': { angle: 60, opacity: 0.22 },
+        'Mercedes-Benz': { angle: 150, opacity: 0.25 },
+        'BMW': { angle: 300, opacity: 0.2 }
+    };
+    
+    let treemapData;
+    let titleText;
+    
+    // Treemap 데이터 생성 (드릴다운 여부에 따라)
+    if (treemapSelectedCompany) {
+        // 특정 제조사의 차종별 데이터
+        const data = getFilteredData();
+        const modelData = aggregateByModel(data, treemapSelectedCompany);
+        
+        treemapData = modelData.slice(0, 20).map((item, idx) => ({
+            company: item.model,
+            value: item.sales,
+            color: colors[idx % colors.length],
+            logo: brandLogos[treemapSelectedCompany],
+            gradientPattern: null
+        }));
+        
+        titleText = `← ${treemapSelectedCompany} 차종별 판매량 (클릭하여 전체보기)`;
+    } else {
+        // 전체 제조사 데이터
+        const top10 = companyData.slice(0, 10);
+        
+        treemapData = top10.map((item, idx) => ({
+            company: item.company,
+            value: item.sales,
+            color: colors[idx % colors.length],
+            logo: brandLogos[item.company],
+            gradientPattern: gradientPatterns[item.company],
+            carImage: bestSellingCarImages[item.company]
+        }));
+        
+        titleText = '제조사별 판매량 차트 (클릭하여 차종별 보기)';
+    }
+    
+    // 제목 업데이트
+    document.getElementById('companyChartTitle').textContent = titleText;
+    
     charts.company = new Chart(ctx, {
-        type: 'bar',
+        type: 'treemap',
         data: {
-            labels: labels,
             datasets: [{
-                label: '판매량',
-                data: values,
-                backgroundColor: colors,
-                borderRadius: 12,
+                tree: treemapData,
+                key: 'value',
+                groups: ['company'],
+                spacing: 0.5,
                 borderWidth: 0,
-                hoverBackgroundColor: colors.map(c => c + 'CC')
+                borderColor: 'transparent',
+                backgroundColor: function(context) {
+                    if (context.type !== 'data') return 'transparent';
+                    return '#f5f5f7'; // 밝은 배경색 (차량 이미지가 덮음)
+                },
+                labels: {
+                    display: false
+                }
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
+            onClick: function(event, elements) {
+                if (treemapSelectedCompany) {
+                    // 드릴업: 전체 제조사로 돌아가기
+                    treemapSelectedCompany = null;
+                    updateCompanyChart(companyData);
+                } else if (elements.length > 0) {
+                    // 드릴다운: 해당 제조사의 차종별로 이동
+                    const index = elements[0].index;
+                    const clickedCompany = treemapData[index].company;
+                    treemapSelectedCompany = clickedCompany;
+                    updateCompanyChart(companyData);
+                }
+            },
             plugins: {
                 legend: {
                     display: false
@@ -1093,52 +1440,220 @@ function updateCompanyChart(companyData) {
                         family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
                     },
                     callbacks: {
+                        title: function(context) {
+                            return treemapData[context[0].dataIndex]?.company || '';
+                        },
                         label: function(context) {
-                            return '판매량: ' + context.parsed.y.toLocaleString() + ' 대';
+                            const data = treemapData[context.dataIndex];
+                            return '판매량: ' + data.value.toLocaleString();
                         }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                        lineWidth: 1
-                    },
-                    border: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 11,
-                            family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
-                        },
-                        color: '#86868b',
-                        padding: 8,
-                        callback: function(value) {
-                            return value.toLocaleString();
-                        }
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    border: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 11,
-                            family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
-                        },
-                        color: '#86868b',
-                        padding: 8
                     }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'treemapLogo',
+            afterDatasetsDraw: function(chart) {
+                const ctx = chart.ctx;
+                const meta = chart.getDatasetMeta(0);
+                
+                meta.data.forEach((element, index) => {
+                    const data = treemapData[index];
+                    if (!data) return;
+                    
+                    const {x, y, width, height} = element;
+                    const centerX = x + width / 2;
+                    const centerY = y + height / 2;
+                    
+                    // 로고 크기 계산 (박스 크기의 30%)
+                    const logoSize = Math.min(width, height) * 0.3;
+                    const maxLogoSize = 60;
+                    const minLogoSize = 30;
+                    const finalLogoSize = Math.max(minLogoSize, Math.min(logoSize, maxLogoSize));
+                    
+                    // 텍스트만 표시 (차종별일 때)
+                    if (treemapSelectedCompany) {
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                        ctx.shadowBlur = 4;
+                        
+                        // 모델명
+                        ctx.fillText(data.company, centerX, centerY - 10);
+                        // 판매량
+                        ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+                        ctx.fillText(data.value.toLocaleString(), centerX, centerY + 15);
+                        ctx.shadowBlur = 0;
+                        return;
+                    }
+                    
+                    // 제조사별일 때 - 배경에 차 이미지 추가
+                    if (!treemapSelectedCompany) {
+                        ctx.save();
+                        
+                        // 캐시된 이미지 사용
+                        const carImg = carImagesCache[data.company];
+                        
+                        if (carImg && carImg.complete && carImg.width > 0) {
+                            // 클리핑 영역 설정
+                            ctx.beginPath();
+                            ctx.rect(x, y, width, height);
+                            ctx.clip();
+                            
+                            // 이미지 크기와 위치 계산 (박스를 채우도록)
+                            const imgAspect = carImg.width / carImg.height;
+                            const boxAspect = width / height;
+                            
+                            let drawWidth, drawHeight, drawX, drawY;
+                            
+                            if (imgAspect > boxAspect) {
+                                // 이미지가 더 넓음 - 높이에 맞춤
+                                drawHeight = height;
+                                drawWidth = height * imgAspect;
+                                drawX = x + (width - drawWidth) / 2;
+                                drawY = y;
+                            } else {
+                                // 이미지가 더 높음 - 너비에 맞춤
+                                drawWidth = width;
+                                drawHeight = width / imgAspect;
+                                drawX = x;
+                                drawY = y + (height - drawHeight) / 2;
+                            }
+                            
+                            // 배경 이미지 그리기 (선명하게)
+                            ctx.globalAlpha = 0.85;
+                            ctx.filter = 'brightness(0.85) contrast(1.05)';
+                            ctx.drawImage(carImg, drawX, drawY, drawWidth, drawHeight);
+                            ctx.filter = 'none';
+                            ctx.globalAlpha = 1;
+                        } else {
+                            // 이미지가 없으면 밝은 배경색 표시
+                            ctx.fillStyle = '#f0f0f5';
+                            ctx.fillRect(x, y, width, height);
+                        }
+                        
+                        // 제조사별 색상 테두리 추가
+                        ctx.strokeStyle = data.color;
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x, y, width, height);
+                        
+                        ctx.restore();
+                    }
+                    
+                    // 제조사별일 때 - 배경에 그라데이션 패턴 추가
+                    if (data.gradientPattern && !data.carImage) {
+                        ctx.save();
+                        
+                        const pattern = data.gradientPattern;
+                        const angle = pattern.angle * (Math.PI / 180);
+                        
+                        // 그라데이션 시작/끝점 계산 (각도에 따라)
+                        const centerX_grad = x + width / 2;
+                        const centerY_grad = y + height / 2;
+                        const length = Math.sqrt(width * width + height * height) / 2;
+                        
+                        const x1 = centerX_grad + Math.cos(angle) * length;
+                        const y1 = centerY_grad + Math.sin(angle) * length;
+                        const x2 = centerX_grad - Math.cos(angle) * length;
+                        const y2 = centerY_grad - Math.sin(angle) * length;
+                        
+                        // 그라데이션 생성
+                        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+                        
+                        // 색상에서 밝은 버전과 어두운 버전 생성
+                        const baseColor = data.color;
+                        gradient.addColorStop(0, baseColor + 'FF'); // 완전 불투명
+                        gradient.addColorStop(0.5, baseColor + 'DD'); // 약간 투명
+                        gradient.addColorStop(1, baseColor + 'BB'); // 더 투명
+                        
+                        // 그라데이션 그리기
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(x, y, width, height);
+                        
+                        // 미묘한 패턴 추가 (대각선)
+                        ctx.globalAlpha = pattern.opacity;
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 2;
+                        
+                        for (let i = -height; i < width + height; i += 20) {
+                            ctx.beginPath();
+                            ctx.moveTo(x + i, y);
+                            ctx.lineTo(x + i + height, y + height);
+                            ctx.stroke();
+                        }
+                        
+                        ctx.restore();
+                    }
+                    
+                    // 로고 이미지 그리기 (제조사별일 때)
+                    if (!data.logo) return;
+                    
+                    const logoImg = new Image();
+                    logoImg.src = data.logo;
+                    if (logoImg.complete) {
+                        ctx.save();
+                        
+                        // 로고와 판매량을 세로로 붙여서 배치
+                        const logoY = centerY - 15; // 로고 중심 (중앙에서 약간 위)
+                        const textY = logoY + finalLogoSize / 2 + 25; // 판매량 (로고 바로 아래)
+                        
+                        // 로고 배경 - 완전 불투명
+                        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                        ctx.shadowBlur = 15;
+                        ctx.beginPath();
+                        ctx.arc(centerX, logoY, finalLogoSize / 2 + 1, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                        
+                        // 로고 그리기
+                        ctx.beginPath();
+                        ctx.arc(centerX, logoY, finalLogoSize / 2, 0, Math.PI * 2);
+                        ctx.clip();
+                        ctx.drawImage(
+                            logoImg,
+                            centerX - finalLogoSize / 2,
+                            logoY - finalLogoSize / 2,
+                            finalLogoSize,
+                            finalLogoSize
+                        );
+                        
+                        ctx.restore();
+                        
+                        // 판매량 텍스트 배경 (불투명 박스)
+                        ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+                        const textMetrics = ctx.measureText(data.value.toLocaleString());
+                        const textWidth = textMetrics.width;
+                        const textPadding = 12;
+                        
+                        // 배경 박스 그림자
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                        ctx.shadowBlur = 10;
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                        ctx.fillRect(
+                            centerX - textWidth / 2 - textPadding,
+                            textY - 12,
+                            textWidth + textPadding * 2,
+                            24
+                        );
+                        ctx.shadowBlur = 0;
+                        
+                        // 판매량 텍스트
+                        ctx.fillStyle = 'white';
+                        ctx.textAlign = 'center';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                        ctx.shadowBlur = 2;
+                        ctx.fillText(data.value.toLocaleString(), centerX, textY + 4);
+                        ctx.shadowBlur = 0;
+                    } else {
+                        logoImg.onload = function() {
+                            chart.update('none');
+                        };
+                    }
+                });
+            }
+        }]
     });
 }
 

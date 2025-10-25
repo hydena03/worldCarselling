@@ -33,12 +33,12 @@ yearly_top_models = {
         "Honda CR-V": 880000,
         "BYD SONG": 750000,
     },
-    2025: {  # 상반기 데이터 (6개월) - 연간 추정치의 절반
-        "Tesla Model Y": 550000,
-        "Toyota Corolla": 560000,
-        "Hyundai-Kia Tucson": 430000,
-        "Hyundai-Kia Sportage": 420000,
-        "BYD SONG": 400000,
+    2025: {  # 3분기 데이터 (9개월) - 연간 추정치의 75%
+        "Tesla Model Y": 820000,
+        "Toyota Corolla": 830000,
+        "Hyundai-Kia Tucson": 645000,
+        "Hyundai-Kia Sportage": 630000,
+        "BYD SONG": 600000,
     }
 }
 
@@ -59,9 +59,9 @@ company_totals = {
     2024: {"Toyota": 10500000, "Volkswagen": 9000000, "Hyundai-Kia": 7500000, "GM": 6300000,
            "Stellantis": 6200000, "Ford": 4400000, "Honda": 4000000, "Nissan": 3400000,
            "BYD": 3600000, "Tesla": 1790000, "Mercedes-Benz": 2400000, "BMW": 2300000},
-    2025: {"Toyota": 5400000, "Volkswagen": 4600000, "Hyundai-Kia": 3900000, "GM": 3200000,
-           "Stellantis": 3150000, "Ford": 2250000, "Honda": 2050000, "Nissan": 1750000,
-           "BYD": 1900000, "Tesla": 920000, "Mercedes-Benz": 1230000, "BMW": 1180000}
+    2025: {"Toyota": 8100000, "Volkswagen": 6900000, "Hyundai-Kia": 5850000, "GM": 4800000,
+           "Stellantis": 4725000, "Ford": 3375000, "Honda": 3075000, "Nissan": 2625000,
+           "BYD": 2850000, "Tesla": 1380000, "Mercedes-Benz": 1845000, "BMW": 1770000}
 }
 
 # 제조사별 주요 모델 비율
@@ -193,8 +193,8 @@ print("const salesData = [")
 
 # 연도별 데이터 생성
 for year in [2020, 2021, 2022, 2023, 2024, 2025]:
-    # 2025년은 상반기만 (1-6월)
-    max_month = 7 if year == 2025 else 13
+    # 2025년은 3분기까지 (1-9월)
+    max_month = 10 if year == 2025 else 13
     
     for month in range(1, max_month):
         month_str = f"{month:02d}"
@@ -202,7 +202,7 @@ for year in [2020, 2021, 2022, 2023, 2024, 2025]:
         
         for company in company_totals[year].keys():
             total_sales = company_totals[year][company]
-            months_in_year = 6 if year == 2025 else 12
+            months_in_year = 9 if year == 2025 else 12
             monthly_base = total_sales / months_in_year
             monthly_total = monthly_base * factor
             
